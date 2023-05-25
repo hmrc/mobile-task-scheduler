@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mobiletaskscheduler.config
+package uk.gov.hmrc.mobiletaskscheduler.models
 
-import com.google.inject.AbstractModule
-import uk.gov.hmrc.mobiletaskscheduler.schedulers.ItemScheduler
+import play.api.libs.json._
 
-class Module extends AbstractModule {
+final case class Item(
+    title: String,
+    body: String,
+    isSomething: Boolean
+) {
+    override def equals(that: Any): Boolean = this.title == that.asInstanceOf[Item].title
+}
 
-    override def configure(): Unit = {
-        bind(classOf[ItemScheduler]).asEagerSingleton()
-        bind(classOf[AppConfig]).asEagerSingleton()
-    }
+object Item {
+    implicit val formats: Format[Item] = Json.format[Item]
 }
