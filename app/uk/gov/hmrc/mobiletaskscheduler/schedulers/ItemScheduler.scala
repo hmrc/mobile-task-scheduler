@@ -40,13 +40,13 @@ class ItemScheduler @Inject()(
         itemService.scanAll.map(count => Result(s"Processed $count items"))
 
     private lazy val enabled: Boolean =
-        configuration.get[Boolean]("scheduling.item.enabled")
+        configuration.get[Boolean]("scheduling.items.enabled")
 
     private lazy val initialDelay: FiniteDuration =
-        configuration.get[FiniteDuration]("scheduling.item.initialDelay")
+        configuration.get[FiniteDuration]("scheduling.items.initialDelay")
 
     private lazy val interval: FiniteDuration =
-        configuration.get[FiniteDuration]("scheduling.item.interval")
+        configuration.get[FiniteDuration]("scheduling.items.interval")
 
     if (enabled) {
         logger.warn("ItemScheduler has started.")
