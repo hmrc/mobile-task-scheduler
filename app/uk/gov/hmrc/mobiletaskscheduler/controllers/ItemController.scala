@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.mobiletaskscheduler.controllers
 
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.mobiletaskscheduler.models.Item
+import play.api.libs.json.JsValue
+import play.api.mvc.{Action, ControllerComponents}
+import uk.gov.hmrc.mobiletaskscheduler.models.ScheduleRequest
 import uk.gov.hmrc.mobiletaskscheduler.services.ItemService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -35,13 +35,9 @@ class ItemController @Inject()(
 )
     extends BackendController(cc) {
 
-    def addItem(): Action[AnyContent] = Action.async { implicit request =>
-        itemService.addItem(
-            Item(
-                s"some title ${UUID.randomUUID.toString}",
-                "some subtitle",
-                isSomething = true
-                )
-            ).map(_ => Ok("Done"))
+    def addItem(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+        withJsonBody[ScheduleRequest] { request =>
+            itemService.addItem(request).map(_ => Ok)
+        }
     }
 }

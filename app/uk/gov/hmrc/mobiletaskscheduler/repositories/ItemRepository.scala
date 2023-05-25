@@ -49,8 +49,6 @@ class ItemRepository @Inject()(
     itemFormat = MongoPushUpdateFormats.formats,
     workItemFields = WorkItemFields.default
     ) {
-    override def now(): Instant =
-        Instant.now
 
     lazy val retryIntervalMillis =
         configuration.getMillis("queue.retryAfter")
@@ -63,4 +61,7 @@ class ItemRepository @Inject()(
             failedBefore = now().minusMillis(retryIntervalMillis.toInt),
             availableBefore = now()
             )
+
+    override def now(): Instant =
+        Instant.now
 }

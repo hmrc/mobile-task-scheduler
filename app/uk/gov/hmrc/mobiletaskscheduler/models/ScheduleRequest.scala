@@ -16,19 +16,31 @@
 
 package uk.gov.hmrc.mobiletaskscheduler.models
 
-import play.api.libs.json._
+import play.api.libs.json.{Format, Json}
 
-final case class Item(
-    title: String,
-    body: String,
-    isSomething: Boolean
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+
+case class ScheduleRequest(
+    minutes: Int,
+    hours: Int,
+    days: Int
 ) {
-    override def equals(that: Any): Boolean =
-        this.title == that.asInstanceOf[Item].title &&
-            this.body == that.asInstanceOf[Item].body &&
-            this.isSomething == that.asInstanceOf[Item].isSomething
+    def instant: Instant = {
+        if (isNow) Instant.now()
+        else
+            Instant.now()
+                   .plus(minutes, ChronoUnit.MINUTES)
+                   .plus(hours, ChronoUnit.HOURS)
+                   .plus(days, ChronoUnit.DAYS)
+    }
+
+    private def isNow: Boolean =
+        minutes == 0 &&
+            hours == 0 &&
+            days == 0
 }
 
-object Item {
-    implicit val formats: Format[Item] = Json.format[Item]
+object ScheduleRequest {
+    implicit val format: Format[ScheduleRequest] = Json.format[ScheduleRequest]
 }

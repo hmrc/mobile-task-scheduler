@@ -34,11 +34,6 @@ class ItemScheduler @Inject()(
 )(
     implicit ec: ExecutionContext
 ) {
-    private val logger = Logger(getClass)
-
-    private def execute(implicit ec: ExecutionContext): Future[Result] =
-        itemService.scanAll.map(count => Result(s"Processed $count items"))
-
     private lazy val enabled: Boolean =
         configuration.get[Boolean]("scheduling.items.enabled")
 
@@ -47,6 +42,11 @@ class ItemScheduler @Inject()(
 
     private lazy val interval: FiniteDuration =
         configuration.get[FiniteDuration]("scheduling.items.interval")
+
+    private val logger = Logger(getClass)
+
+    private def execute(implicit ec: ExecutionContext): Future[Result] =
+        itemService.scanAll.map(count => Result(s"Processed $count items"))
 
     if (enabled) {
         logger.warn("ItemScheduler has started.")

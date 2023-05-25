@@ -17,13 +17,15 @@
 package uk.gov.hmrc.mobiletaskscheduler.services
 
 import play.api.Logger
-import uk.gov.hmrc.mobiletaskscheduler.models.Item
+import uk.gov.hmrc.mobiletaskscheduler.models.{Item, ScheduleRequest}
 import uk.gov.hmrc.mobiletaskscheduler.repositories.ItemRepository
 import uk.gov.hmrc.mongo.workitem.ProcessingStatus.Succeeded
-import uk.gov.hmrc.mongo.workitem.WorkItem
+import uk.gov.hmrc.mongo.workitem.{ProcessingStatus, WorkItem}
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 @Singleton
 class ItemService @Inject()(
@@ -32,9 +34,14 @@ class ItemService @Inject()(
 
     private val logger = Logger(getClass)
 
-    def addItem(item: Item): Future[Boolean] =
-    //    itemRepository.pushNew(item, availableAt = Instant.now().plus(2, ChronoUnit.DAYS)).map(_ => true)
-        itemRepository.pushNew(item).map(_ => true)
+    def addItem(request: ScheduleRequest): Future[Unit] = {
+        val item = Item(
+            s"some title ${UUID.randomUUID.toString}",
+            "some subtitle",
+            isSomething = true
+            )
+        itemRepository.pushNew(item, availableAt = request.instant).map(_ => ())
+    }
 
     def scanAll(implicit ec: ExecutionContext): Future[Int] = {
         def processNext(acc: Int): Future[Int] =
@@ -50,14 +57,17 @@ class ItemService @Inject()(
         logger.info("********************************")
         logger.info(s"Processing item ${workItem.item.title}")
         logger.info("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-//        itemRepository.completeAndDelete(workItem.id).map(_ => ())
+        /*
+         * process the item
+         * if processing fails, do something like below in the recoverWith lambda
+         * should probably also delete the item when marked as complete itemRepository.completeAndDelete(workItem.id)
+         * for the purpose of a POC, I'm going to just mark as complete
+         */
         itemRepository.complete(workItem.id, Succeeded).map(_ => ())
-        // process the item
-        // if processing fails, do something like below
-//                      .recoverWith {
-//                          case NonFatal(e) =>
-//                              logger.error(s"Failed to process item ${workItem}", e)
-//                              itemRepository.markAs(workItem.id, ProcessingStatus.Failed).map(_ => Unit)
-//                      }
+                      .recoverWith {
+                          case NonFatal(e) =>
+                              logger.error(s"Failed to process item ${workItem}", e)
+                              itemRepository.markAs(workItem.id, ProcessingStatus.Failed).map(_ => ())
+                      }
     }
 }
